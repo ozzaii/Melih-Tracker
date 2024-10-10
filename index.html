@@ -3,75 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Melih's Cosmic Pet</title>
+    <title>Melih-Tracker: Cosmic Edition</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to bottom, #000000, #434343);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        body, html {
             margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(45deg, #000000, #434343);
+            color: #fff;
+            overflow: hidden;
         }
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-        }
-        input, button {
-            margin: 10px 0;
-            padding: 5px;
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
-        #output {
-            margin-top: 20px;
-            white-space: pre-wrap;
+        .chat-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            height: calc(100% - 80px);
+            display: flex;
+            flex-direction: column;
+        }
+        #chat-box {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        .user-message {
+            background: rgba(0, 255, 255, 0.2);
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .bot-message {
+            background: rgba(255, 0, 255, 0.2);
+            align-self: flex-start;
+        }
+        #user-input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 16px;
+        }
+        #user-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Melih's Cosmic Pet</h1>
-        <input type="text" id="entry" placeholder="How you feeling about Melih?">
-        <button onclick="addEntry()">Add Entry</button>
-        <button onclick="getEntries()">Get Entries</button>
-        <input type="text" id="theme" placeholder="Poem theme">
-        <button onclick="generatePoem()">Generate Poem</button>
-        <div id="output"></div>
+    <div class="stars"></div>
+    <div class="chat-container">
+        <div id="chat-box"></div>
+        <input type="text" id="user-input" placeholder="Communicate with the Melih-verse...">
     </div>
     <script>
-        const API_URL = 'http://localhost:8080';  // Change this to your Colab URL when deployed
+        const API_URL = 'http://localhost:8080/cosmic_convo';  // Replace with your ngrok URL
 
-        async function addEntry() {
-            const entry = document.getElementById('entry').value;
-            const response = await fetch(`${API_URL}/add_entry`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({entry})
-            });
-            const data = await response.json();
-            document.getElementById('output').textContent = data.message;
+        function addMessage(message, isUser) {
+            const chatBox = document.getElementById('chat-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+            messageDiv.textContent = message;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        async function getEntries() {
-            const response = await fetch(`${API_URL}/get_entries`);
-            const data = await response.json();
-            document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage(message, true);
+                userInput.value = '';
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({text: message})
+                    });
+                    const data = await response.json();
+                    addMessage(data.response, false);
+                } catch (error) {
+                    console.error('Error:', error);
+                    addMessage('The cosmic forces are disrupted. Please try again.', false);
+                }
+            }
         }
 
-        async function generatePoem() {
-            const theme = document.getElementById('theme').value;
-            const response = await fetch(`${API_URL}/generate_poem`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({theme})
-            });
-            const data = await response.json();
-            document.getElementById('output').textContent = data.poem;
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Create twinkling stars
+        function createStars() {
+            const starsContainer = document.querySelector('.stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.style.position = 'absolute';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.width = `${Math.random() * 3}px`;
+                star.style.height = star.style.width;
+                star.style.backgroundColor = 'white';
+                star.style.borderRadius = '50%';
+                star.style.animation = `twinkle ${Math.random() * 5 + 5}s infinite`;
+                starsContainer.appendChild(star);
+            }
         }
+
+        createStars();
     </script>
+    <style>
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
 </body>
 </html>
