@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Melih's Cosmic Pet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #000000, #434343);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 5px;
+            width: 100%;
+        }
+        #output {
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Melih's Cosmic Pet</h1>
+        <input type="text" id="entry" placeholder="How you feeling about Melih?">
+        <button onclick="addEntry()">Add Entry</button>
+        <button onclick="getEntries()">Get Entries</button>
+        <input type="text" id="theme" placeholder="Poem theme">
+        <button onclick="generatePoem()">Generate Poem</button>
+        <div id="output"></div>
+    </div>
+    <script>
+        const API_URL = 'http://localhost:8080';  // Change this to your Colab URL when deployed
+
+        async function addEntry() {
+            const entry = document.getElementById('entry').value;
+            const response = await fetch(`${API_URL}/add_entry`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({entry})
+            });
+            const data = await response.json();
+            document.getElementById('output').textContent = data.message;
+        }
+
+        async function getEntries() {
+            const response = await fetch(`${API_URL}/get_entries`);
+            const data = await response.json();
+            document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function generatePoem() {
+            const theme = document.getElementById('theme').value;
+            const response = await fetch(`${API_URL}/generate_poem`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({theme})
+            });
+            const data = await response.json();
+            document.getElementById('output').textContent = data.poem;
+        }
+    </script>
+</body>
+</html>
